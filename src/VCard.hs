@@ -6,6 +6,7 @@ module VCard (
 
 #ifdef TEST
   , ContentLine (..)
+  , Param (..)
   , readContentLine
   , semi
   , colon
@@ -46,7 +47,7 @@ data VCard = VCard {
 readContentLine :: TL.Text -> ContentLine
 readContentLine l =
   let a = TL.splitOn ":" l
-   in ContentLine { name = a !! 0, param = [], value = a !! 1 }
+   in ContentLine { name = head a, param = [], value = a !! 1 }
 
 sc :: Parser ()
 sc = L.space (void spaceChar) empty empty
@@ -71,9 +72,10 @@ endvcard = symbol "END:VCARD"
 
 readLine :: Parser ContentLine
 readLine = do
-  n <- manyTill anyChar colon
+  p <- manyTill anyChar colon
+  let a = TL.splitOn ";" $ TL.pack p
   v <- manyTill anyChar eol
-  return ContentLine { name = TL.pack n, param = [], value = TL.pack v }
+  return ContentLine { name = head a, param = Param <$> drop 1 a, value = TL.pack v }
 
 readBlock :: Parser [ContentLine]
 readBlock =

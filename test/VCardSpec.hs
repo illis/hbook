@@ -41,9 +41,13 @@ spec = parallel $ do
     it "picks up a colon" $ 
       parse colon "" ":" `shouldParse` ":"
 
-  describe "readLine" $
+  describe "readLine" $ do
     it "reads a basic line" $
       parse readLine "" "TEL:123\n" `shouldParse` ContentLine { name = "TEL", param = [], value = "123" }
+    it "reads a param" $ do
+      parse readLine "" "TEL;MOBILE:123\n" `shouldParse` ContentLine { name = "TEL", param = [Param "MOBILE"], value = "123" }
+    it "reads multiple params" $ do
+      parse readLine "" "TEL;MOBILE;WORK:456\n" `shouldParse` ContentLine { name = "TEL", param = [Param "MOBILE", Param "WORK"], value = "456" }
     
   describe "readBlock" $
     it "reads a basic block line" $
