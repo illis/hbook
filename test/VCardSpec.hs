@@ -31,7 +31,7 @@ spec :: Spec
 spec = parallel $ do
   describe "readContentLine" $
     it "reads a basic name & value line" $ property $
-      forAll ((,) <$> upperText <*> upperText) $ \(x, y) -> readContentLine(x <> ":" <> y) `shouldBe` ContentLine { name = x, value = y, prop = [] }
+      forAll ((,) <$> upperText <*> upperText) $ \(x, y) -> readContentLine(x <> ":" <> y) `shouldBe` ContentLine { name = x, value = y, param = [] }
 
   describe "semi" $
     it "picks up a semi colon" $ 
@@ -43,15 +43,15 @@ spec = parallel $ do
 
   describe "readLine" $
     it "reads a basic line" $
-      parse readLine "" "TEL:123\n" `shouldParse` ContentLine { name = "TEL", prop = [], value = "123" }
-
+      parse readLine "" "TEL:123\n" `shouldParse` ContentLine { name = "TEL", param = [], value = "123" }
+    
   describe "readBlock" $
     it "reads a basic block line" $
-      parse readBlock "" "BEGIN:VCARD\nTEL:123\nEND:VCARD\n" `shouldParse` [ContentLine { name = "TEL", value = "123", prop = [] }]
+      parse readBlock "" "BEGIN:VCARD\nTEL:123\nEND:VCARD\n" `shouldParse` [ContentLine { name = "TEL", value = "123", param = [] }]
 
   describe "readVCard" $  do
     it "reads a single vcard" $
-      parse readVCard "" "BEGIN:VCARD\nTEL:123\nEND:VCARD\n" `shouldParse` [VCard { VCard.lines = [ContentLine { name = "TEL", value = "123", prop = [] }] }]
+      parse readVCard "" "BEGIN:VCARD\nTEL:123\nEND:VCARD\n" `shouldParse` [VCard { VCard.lines = [ContentLine { name = "TEL", value = "123", param = [] }] }]
 
-    it "reads a concatinated vcards" $
-      parse readVCard "" "BEGIN:VCARD\nTEL:123\nEND:VCARD\nBEGIN:VCARD\nEMAIL:noone@nowhere.com\nEND:VCARD\n" `shouldParse` [VCard { VCard.lines = [ContentLine { name = "TEL", value = "123", prop = [] }] }, VCard { VCard.lines = [ContentLine { name = "EMAIL", value = "noone@nowhere.com", prop = [] }] }]
+    it "reads concatinated vcards" $
+      parse readVCard "" "BEGIN:VCARD\nTEL:123\nEND:VCARD\nBEGIN:VCARD\nEMAIL:noone@nowhere.com\nEND:VCARD\n" `shouldParse` [VCard { VCard.lines = [ContentLine { name = "TEL", value = "123", param = [] }] }, VCard { VCard.lines = [ContentLine { name = "EMAIL", value = "noone@nowhere.com", param = [] }] }]

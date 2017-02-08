@@ -33,7 +33,7 @@ data Param = Param TL.Text
 
 data ContentLine = ContentLine {
   name :: TL.Text,
-  prop :: [Param],
+  param :: [Param],
   value :: TL.Text
 } deriving (Show,Eq)
 
@@ -46,7 +46,7 @@ data VCard = VCard {
 readContentLine :: TL.Text -> ContentLine
 readContentLine l =
   let a = TL.splitOn ":" l
-   in ContentLine { name = a !! 0, prop = [], value = a !! 1 }
+   in ContentLine { name = a !! 0, param = [], value = a !! 1 }
 
 sc :: Parser ()
 sc = L.space (void spaceChar) empty empty
@@ -73,7 +73,7 @@ readLine :: Parser ContentLine
 readLine = do
   n <- manyTill anyChar colon
   v <- manyTill anyChar eol
-  return ContentLine { name = TL.pack n, prop = [], value = TL.pack v }
+  return ContentLine { name = TL.pack n, param = [], value = TL.pack v }
 
 readBlock :: Parser [ContentLine]
 readBlock =
