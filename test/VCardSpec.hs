@@ -11,8 +11,9 @@ import Test.QuickCheck.Gen
 import Test.QuickCheck.Instances
 import qualified Data.Text.Lazy as TL
 import Data.Monoid ( (<>) )
+import Data.Either ( lefts, rights )
 import Control.Monad ( replicateM )
-import Text.Megaparsec ( parse )
+import Text.Megaparsec ( parse, parseTest )
 
 default (TL.Text)
 
@@ -44,18 +45,43 @@ spec = parallel $ do
   describe "readLine" $ do
     it "reads a basic line" $
       parse readLine "" "TEL:123\n" `shouldParse` ContentLine { name = "TEL", param = [], value = "123" }
-    it "reads a param" $ do
+    it "reads a param" $
       parse readLine "" "TEL;MOBILE:123\n" `shouldParse` ContentLine { name = "TEL", param = [Param "MOBILE"], value = "123" }
-    it "reads multiple params" $ do
+    it "reads multiple params" $
       parse readLine "" "TEL;MOBILE;WORK:456\n" `shouldParse` ContentLine { name = "TEL", param = [Param "MOBILE", Param "WORK"], value = "456" }
     
   describe "readBlock" $
     it "reads a basic block line" $
       parse readBlock "" "BEGIN:VCARD\nTEL:123\nEND:VCARD\n" `shouldParse` [ContentLine { name = "TEL", value = "123", param = [] }]
 
-  describe "readVCard" $  do
+  describe "readVCard" $ do
     it "reads a single vcard" $
       parse readVCard "" "BEGIN:VCARD\nTEL:123\nEND:VCARD\n" `shouldParse` [VCard { VCard.lines = [ContentLine { name = "TEL", value = "123", param = [] }] }]
 
     it "reads concatinated vcards" $
       parse readVCard "" "BEGIN:VCARD\nTEL:123\nEND:VCARD\nBEGIN:VCARD\nEMAIL:noone@nowhere.com\nEND:VCARD\n" `shouldParse` [VCard { VCard.lines = [ContentLine { name = "TEL", value = "123", param = [] }] }, VCard { VCard.lines = [ContentLine { name = "EMAIL", value = "noone@nowhere.com", param = [] }] }]
+
+  let card123 = VCard { VCard.lines = [ContentLine { name = "TEL", value = "123", param = [] }] }
+  let cardm3 = VCard { VCard.lines = [ContentLine { name = "EMAIL", value = "no11e@nowhere.com", param = [] }] }
+  let cardm5 = VCard { VCard.lines = [ContentLine { name = "EMAIL", value = "noone@nowhere.com", param = [] }] }
+
+  describe "scoreCard" $ do
+    it "returns a score for a matched card" $ do
+      scoreCard "one" cardm5 `shouldBe` Just (cardm5, 5)
+
+    it "returns a score for a matched card (2)" $ do
+      scoreCard "one" cardm3 `shouldBe` Just (cardm3, 3)
+
+    it "returns Nothing for a un-matched card" $ do
+      scoreCard "123" cardm5 `shouldBe` Nothing
+
+  describe "searchValues" $ do
+    it "does a basic search on values and returns back a list of matching vcards" $
+      searchValues "one" 0 [card123, cardm5] `shouldBe` [cardm5]
+
+    it "returns only matches with a min score" $
+      searchValues "one" 4 [cardm5, cardm3] `shouldBe` [cardm5]
+
+    it "returns ordered decending by score" $ 
+      searchValues "one" 0 [cardm3, cardm5, cardm3] `shouldBe` [cardm5, cardm3, cardm3]
+

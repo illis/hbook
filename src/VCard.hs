@@ -3,6 +3,8 @@
 
 module VCard (
   VCard(..)
+  , readVCard
+  , searchValues
 
 #ifdef TEST
   , ContentLine (..)
@@ -12,7 +14,7 @@ module VCard (
   , colon
   , readLine
   , readBlock
-  , readVCard
+  , scoreCard
 
 #endif 
 
@@ -21,7 +23,11 @@ module VCard (
 import Control.Applicative (empty)
 import Control.Monad (void)
 import qualified Data.Text.Lazy as TL
+import Data.Function ( on )
+import Data.List ( reverse, sortBy )
+import Data.Maybe ( catMaybes )
 import Data.Monoid ( (<>) )
+import Text.Fuzzy as F
 import Text.Megaparsec
 import Text.Megaparsec.Expr
 import Text.Megaparsec.Text.Lazy
@@ -89,3 +95,23 @@ readVCard' = do
 readVCard :: Parser [VCard]
 readVCard = some readVCard'
 
+scoreCard :: TL.Text -> VCard -> Maybe (VCard, Int)
+scoreCard s c =
+  case length results of
+    0 -> Nothing
+    _ -> Just (c, score $ head results)
+  where results = F.filter s (VCard.lines c) "" "" value False 
+
+searchValues' :: [(VCard, Int)] -> Int -> [(VCard, Int)]
+searchValues' [] _ = []
+searchValues' (x : xs)  i
+  | snd x >= i  = x : searchValues' xs i
+  | otherwise = searchValues' xs i
+
+searchValues :: TL.Text -> Int -> [VCard] -> [VCard]
+searchValues s i c = reverse $ fst <$> sortBy comparitor minScored
+  where 
+    scored = catMaybes $ scoreCard s <$> c
+    minScored = searchValues' scored i
+    comparitor = compare `on` snd
+  
