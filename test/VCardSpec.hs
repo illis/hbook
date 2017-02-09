@@ -12,7 +12,7 @@ import Test.QuickCheck.Instances
 import qualified Data.Text.Lazy as TL
 import Data.Monoid ( (<>) )
 import Control.Monad ( replicateM )
-import Text.Megaparsec ( parse, parseTest )
+import Text.Megaparsec ( parse )
 
 default (TL.Text)
 
