@@ -36,14 +36,16 @@ formatName c
     nickNameFields = findFields c "NICKNAME"
 
 formatParamsForMutt :: [Param] -> TL.Text
-formatParamsForMutt = foldr (\x -> TL.append . TL.pack $ show x) ""
+formatParamsForMutt =  TL.intercalate ", " 
 
 -- mutt format: <email address> <tab> <long name> <tab> <other info> <newline>
 formatForMutt :: VCard -> TL.Text
-formatForMutt c = foldr (\x -> TL.append (TL.pack $ printf "%s\t%s\t%s\n" (value x) name (value x))) "" emailFields
+formatForMutt c = foldr (\x -> TL.append (TL.pack $ printf "%s\t%s\t%s\n" (value x) name (paramStr x))) "" emailFields
   where 
     name = formatName c
     emailFields = findFields c "EMAIL"
+    paramStr x = formatParamsForMutt $ param x
 
 muttQuery :: TL.Text -> TL.Text -> IO ()
 muttQuery a f = putStrLn "muttQuery"
+

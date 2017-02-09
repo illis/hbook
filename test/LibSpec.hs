@@ -70,7 +70,10 @@ spec = parallel $ do
     it "formats a card to mutt format" $ 
       formatForMutt cardSu `shouldBe` "chris.su@nowhere.com\tSu, Chris\tHOME\nchris.su@somewhere.com\tSu, Chris\tWORK\n"
 
-  describe "formatParamsForMutt" $
-    it "formats a single propery field" $ 
-      formatParamsForMutt p `shouldBe` "WORK"
-        where p = ["WORK"]
+  describe "formatParamsForMutt" $ do
+    it "formats a single property field" $ 
+      formatParamsForMutt ["WORK"] `shouldBe` "WORK"
+
+    it "formats a multiple property fields" $ 
+      formatParamsForMutt ["WORK", "SECOND"] `shouldBe` "WORK, SECOND"
+
