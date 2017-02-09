@@ -11,7 +11,6 @@ import Test.QuickCheck.Gen
 import Test.QuickCheck.Instances
 import qualified Data.Text.Lazy as TL
 import Data.Monoid ( (<>) )
-import Data.Either ( lefts, rights )
 import Control.Monad ( replicateM )
 import Text.Megaparsec ( parse, parseTest )
 
@@ -64,15 +63,22 @@ spec = parallel $ do
   let card123 = VCard { VCard.lines = [ContentLine { name = "TEL", value = "123", param = [] }] }
   let cardm3 = VCard { VCard.lines = [ContentLine { name = "EMAIL", value = "no11e@nowhere.com", param = [] }] }
   let cardm5 = VCard { VCard.lines = [ContentLine { name = "EMAIL", value = "noone@nowhere.com", param = [] }] }
+  let clSuEmail = ContentLine { name = "EMAIL", value = "chris.su@nowhere.com", param = [Param "HOME"] }
+  let clSuEmail2 = ContentLine { name = "EMAIL", value = "chris.su@somewhere.com", param = [Param "WORK"] }
+
+  let cardSu = VCard { VCard.lines = [
+      ContentLine { name = "TEL", value = "123", param = [] },
+      clSuEmail, clSuEmail2,
+      ContentLine { name = "N", value = "Su;Chris;;;", param = [] } ]}
 
   describe "scoreCard" $ do
-    it "returns a score for a matched card" $ do
+    it "returns a score for a matched card" $
       scoreCard "one" cardm5 `shouldBe` Just (cardm5, 5)
 
-    it "returns a score for a matched card (2)" $ do
+    it "returns a score for a matched card (2)" $
       scoreCard "one" cardm3 `shouldBe` Just (cardm3, 3)
 
-    it "returns Nothing for a un-matched card" $ do
+    it "returns Nothing for a un-matched card" $
       scoreCard "123" cardm5 `shouldBe` Nothing
 
   describe "searchValues" $ do
@@ -85,3 +91,11 @@ spec = parallel $ do
     it "returns ordered decending by score" $ 
       searchValues "one" 0 [cardm3, cardm5, cardm3] `shouldBe` [cardm5, cardm3, cardm3]
 
+  describe "findFields" $ do
+    it "returns the relevant ContentLines" $
+      findFields cardSu "EMAIL" `shouldBe` [clSuEmail, clSuEmail2]
+
+    it "returns an empty array if no match is found" $ 
+      findFields cardSu "NICKNAME" `shouldBe` []
+
+      

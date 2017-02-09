@@ -1,6 +1,49 @@
-module Lib
-    ( someFunc
-    ) where
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
+
+module Lib (
+  someFunc
+
+#ifdef TEST
+  , formatParamsForMutt
+  , formatForMutt
+  , formatName
+
+#endif
+
+) where
+
+import VCard
+import qualified Data.Text.Lazy as TL
+import System.IO (IOMode(..), hGetContents, withFile)
+import Text.Printf
+
+default (TL.Text)
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
+
+formatName :: VCard -> TL.Text
+formatName c 
+  | not (null fnFields) = value $ head fnFields
+  | not (null nFields) = TL.pack $ printf "%s, %s" (head nSplits) (nSplits !! 1)
+  | not (null nickNameFields) = value $ head nickNameFields
+  | otherwise = ""
+  where 
+    fnFields = findFields c "FN"
+    nFields = findFields c "N"
+    nSplits = TL.splitOn ";" . value $ head nFields
+    nickNameFields = findFields c "NICKNAME"
+
+formatParamsForMutt :: [Param] -> TL.Text
+formatParamsForMutt = foldr (\x -> TL.append . TL.pack $ show x) ""
+
+-- mutt format: <email address> <tab> <long name> <tab> <other info> <newline>
+formatForMutt :: VCard -> TL.Text
+formatForMutt c = foldr (\x -> TL.append (TL.pack $ printf "%s\t%s\t%s\n" (value x) name (value x))) "" emailFields
+  where 
+    name = formatName c
+    emailFields = findFields c "EMAIL"
+
+muttQuery :: TL.Text -> TL.Text -> IO ()
+muttQuery a f = putStrLn "muttQuery"

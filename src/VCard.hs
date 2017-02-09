@@ -3,12 +3,13 @@
 
 module VCard (
   VCard(..)
-  , readVCard
-  , searchValues
-
-#ifdef TEST
   , ContentLine (..)
   , Param (..)
+  , readVCard
+  , searchValues
+  , findFields
+
+#ifdef TEST
   , readContentLine
   , semi
   , colon
@@ -36,7 +37,7 @@ import qualified Text.Megaparsec.Lexer as L
 default (TL.Text)
 
 data Param = Param TL.Text
-  deriving (Show, Eq)
+  deriving (Eq, Show)
 
 data ContentLine = ContentLine {
   name :: TL.Text,
@@ -114,4 +115,12 @@ searchValues s i c = reverse $ fst <$> sortBy comparitor minScored
     scored = catMaybes $ scoreCard s <$> c
     minScored = searchValues' scored i
     comparitor = compare `on` snd
+
+findFields :: VCard -> TL.Text -> [ContentLine]
+findFields c = it (VCard.lines c)
+  where 
+    it [] s = []
+    it (x:xs) s 
+      | name x == s = x : it xs s
+      | otherwise  = it xs s
   
