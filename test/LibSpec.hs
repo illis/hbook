@@ -29,8 +29,8 @@ main = hspec spec
 
 spec :: Spec
 spec = parallel $ do
-  let clSuEmail = ContentLine { name = "EMAIL", value = "chris.su@nowhere.com", param = [Param "HOME"] }
-  let clSuEmail2 = ContentLine { name = "EMAIL", value = "chris.su@somewhere.com", param = [Param "WORK"] }
+  let clSuEmail = ContentLine { name = "EMAIL", value = "chris.su@nowhere.com", param = ["HOME"] }
+  let clSuEmail2 = ContentLine { name = "EMAIL", value = "chris.su@somewhere.com", param = ["WORK"] }
 
   let cardSuNoName = VCard { VCard.lines = [
       ContentLine { name = "TEL", value = "123", param = [] },
@@ -73,4 +73,4 @@ spec = parallel $ do
   describe "formatParamsForMutt" $
     it "formats a single propery field" $ 
       formatParamsForMutt p `shouldBe` "WORK"
-        where p = [Param "WORK"]
+        where p = ["WORK"]

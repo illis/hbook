@@ -45,9 +45,9 @@ spec = parallel $ do
     it "reads a basic line" $
       parse readLine "" "TEL:123\n" `shouldParse` ContentLine { name = "TEL", param = [], value = "123" }
     it "reads a param" $
-      parse readLine "" "TEL;MOBILE:123\n" `shouldParse` ContentLine { name = "TEL", param = [Param "MOBILE"], value = "123" }
+      parse readLine "" "TEL;MOBILE:123\n" `shouldParse` ContentLine { name = "TEL", param = ["MOBILE"], value = "123" }
     it "reads multiple params" $
-      parse readLine "" "TEL;MOBILE;WORK:456\n" `shouldParse` ContentLine { name = "TEL", param = [Param "MOBILE", Param "WORK"], value = "456" }
+      parse readLine "" "TEL;MOBILE;WORK:456\n" `shouldParse` ContentLine { name = "TEL", param = ["MOBILE", "WORK"], value = "456" }
     
   describe "readBlock" $
     it "reads a basic block line" $
@@ -63,8 +63,8 @@ spec = parallel $ do
   let card123 = VCard { VCard.lines = [ContentLine { name = "TEL", value = "123", param = [] }] }
   let cardm3 = VCard { VCard.lines = [ContentLine { name = "EMAIL", value = "no11e@nowhere.com", param = [] }] }
   let cardm5 = VCard { VCard.lines = [ContentLine { name = "EMAIL", value = "noone@nowhere.com", param = [] }] }
-  let clSuEmail = ContentLine { name = "EMAIL", value = "chris.su@nowhere.com", param = [Param "HOME"] }
-  let clSuEmail2 = ContentLine { name = "EMAIL", value = "chris.su@somewhere.com", param = [Param "WORK"] }
+  let clSuEmail = ContentLine { name = "EMAIL", value = "chris.su@nowhere.com", param = ["HOME"] }
+  let clSuEmail2 = ContentLine { name = "EMAIL", value = "chris.su@somewhere.com", param = ["WORK"] }
 
   let cardSu = VCard { VCard.lines = [
       ContentLine { name = "TEL", value = "123", param = [] },

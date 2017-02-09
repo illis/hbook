@@ -36,8 +36,7 @@ import qualified Text.Megaparsec.Lexer as L
 
 default (TL.Text)
 
-data Param = Param TL.Text
-  deriving (Eq, Show)
+type Param = TL.Text
 
 data ContentLine = ContentLine {
   name :: TL.Text,
@@ -82,7 +81,7 @@ readLine = do
   p <- manyTill anyChar colon
   let a = TL.splitOn ";" $ TL.pack p
   v <- manyTill anyChar eol
-  return ContentLine { name = head a, param = Param <$> drop 1 a, value = TL.pack v }
+  return ContentLine { name = head a, param = drop 1 a, value = TL.pack v }
 
 readBlock :: Parser [ContentLine]
 readBlock =
