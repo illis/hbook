@@ -89,5 +89,5 @@ muttQuery query minScore fileName =
     vcf <- hGetContents handle
     case parse readVCard "" vcf of
       Left x -> putStrLn "Error"
-      Right x -> putStrLn $ TL.intercalate "" (formatForMutt <$> searchValues query minScore x))
+      Right x -> putStrLn $ TL.append "\n" $ TL.intercalate "" (formatForMutt <$> searchValues query minScore x))
 
