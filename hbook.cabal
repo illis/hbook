@@ -22,6 +22,8 @@ library
                      , text
                      , megaparsec
                      , fuzzy
+                     , optparse-applicative
+                     , semigroups
 
 executable hbook-exe
   hs-source-dirs:      app
@@ -33,6 +35,8 @@ executable hbook-exe
                      , text
                      , fuzzy
                      , megaparsec
+                     , optparse-applicative
+                     , semigroups
                      , hbook
   default-language:    Haskell2010
 
@@ -45,6 +49,8 @@ test-suite hbook-test
                      , text
                      , fuzzy
                      , megaparsec
+                     , optparse-applicative
+                     , semigroups
                      , hspec
                      , hspec-megaparsec
                      , QuickCheck
