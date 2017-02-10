@@ -16,9 +16,11 @@ search-param - your search parameter
 min-search-score - a value between 0 (lowest match) & 5 (highest match)
 
 ### Example usage with mutt
+In your muttrc file:
 ```
-set query_command = "hbook-exe --mutt-query contacts.vcf 3 '%s'"
+set query_command = "hbook-exe -q '%s' -m 3 -f contacts.vcf"
 ```
+Then when you hit ctrl-t when entering an address, it should pop you up with a list.
 
 
 ## Caveats
