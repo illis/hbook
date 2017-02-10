@@ -11,9 +11,9 @@ hbook - an address book query tool for Mutt
 ```
 hbook-exe -q %search-query% -m %min-search-score% -f %vcard-filename%
 ```
-search-query - your search parameter
-min-search-score - a value between 0 (lowest match) & 5 (highest match)
-vcard-filename - location of your vcf file
+- search-query - your search parameter
+- min-search-score - a value between 0 (lowest match) & 5 (highest match)
+- vcard-filename - location of your vcf file
 
 ### Example usage with mutt
 In your muttrc file:
@@ -30,5 +30,5 @@ Then when you hit ctrl-t when entering an address, it should pop you up with a l
 
 
 ## References 
-vcard rfc: https://tools.ietf.org/html/rfc6350
-address book format for mutt: https://dev.mutt.org/trac/wiki/MuttGuide/Aliases
+- vcard rfc: https://tools.ietf.org/html/rfc6350
+- address book format for mutt: https://dev.mutt.org/trac/wiki/MuttGuide/Aliases
