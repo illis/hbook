@@ -23,9 +23,11 @@ module VCard (
 
 import Control.Applicative (empty)
 import Control.Monad (void)
+import qualified Data.ByteString.Char8 as B (pack, unpack)
 import qualified Data.Text.Lazy as TL
+import Codec.Binary.QuotedPrintable (decode)
 import Data.Function ( on )
-import Data.List ( reverse, sortBy )
+import Data.List ( delete, reverse, sortBy )
 import Data.Maybe ( catMaybes )
 import Data.Monoid ( (<>) )
 import Text.Fuzzy as F
@@ -80,8 +82,22 @@ readLine :: Parser ContentLine
 readLine = do
   p <- manyTill anyChar colon
   let a = TL.splitOn ";" $ TL.pack p
+  let params = tail a 
   v <- manyTill anyChar eol
-  return ContentLine { name = head a, param = drop 1 a, value = TL.pack v }
+  return ContentLine { name = head a, param = deletedExtraParams params, value = decodedValue v params }
+  where 
+    encodingQP = "ENCODING=QUOTED-PRINTABLE"
+    charsetUTF8 = "CHARSET=UTF-8"
+    deletedExtraParams params = delete charsetUTF8 $ delete encodingQP params
+    decodedValue val params = 
+      case encodingQP `elem` params of
+        False -> TL.pack val
+        True -> do
+          case (decode $ B.pack val) of
+                  Left _ ->  TL.pack val
+                  Right x -> TL.pack $ B.unpack x
+
+
 
 readBlock :: Parser [ContentLine]
 readBlock =

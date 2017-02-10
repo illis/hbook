@@ -48,6 +48,8 @@ spec = parallel $ do
       parse readLine "" "TEL;MOBILE:123\n" `shouldParse` ContentLine { name = "TEL", param = ["MOBILE"], value = "123" }
     it "reads multiple params" $
       parse readLine "" "TEL;MOBILE;WORK:456\n" `shouldParse` ContentLine { name = "TEL", param = ["MOBILE", "WORK"], value = "456" }
+    it "reads a quoted-printable encoded line" $
+      parse readLine "" "N;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:this=20is=20a=20test;sfsadf;;;\n" `shouldParse` ContentLine { name = "N", param = [], value = "this is a test;sfsadf;;;" }
     
   describe "readBlock" $
     it "reads a basic block line" $
