@@ -90,14 +90,11 @@ readLine = do
     charsetUTF8 = "CHARSET=UTF-8"
     deletedExtraParams params = delete charsetUTF8 $ delete encodingQP params
     decodedValue val params = 
-      case encodingQP `elem` params of
-        False -> TL.pack val
-        True -> do
-          case (decode $ B.pack val) of
-                  Left _ ->  TL.pack val
-                  Right x -> TL.pack $ B.unpack x
-
-
+      if encodingQP `elem` params then
+        case decode $ B.pack val of
+          Left _ ->  TL.pack val
+          Right x -> TL.pack $ B.unpack x
+      else TL.pack val
 
 readBlock :: Parser [ContentLine]
 readBlock =
