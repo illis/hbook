@@ -9,11 +9,11 @@ hbook - an address book query tool for Mutt
 
 ## Usage
 ```
-hbook-exe --mutt-query %vcard-filename% %min-search-score% %search-param% 
+hbook-exe -q %search-query% -m %min-search-score% -f %vcard-filename%
 ```
-vcard-filename - location of your vcf file
-search-param - your search parameter
+search-query - your search parameter
 min-search-score - a value between 0 (lowest match) & 5 (highest match)
+vcard-filename - location of your vcf file
 
 ### Example usage with mutt
 In your muttrc file:
