@@ -92,11 +92,11 @@ encodingQP = "ENCODING=QUOTED-PRINTABLE"
 charsetUTF8 = "CHARSET=UTF-8"
 
 readLastLine :: Parser String
-readLastLine = manyTill anyChar eol
+readLastLine = manyTill printChar eol
 
 readMultiLineQP :: Parser String
 readMultiLineQP = do
-  str <- many (try (manyTill anyChar (try qpMultiEol)))
+  str <- many (try (someTill printChar (try qpMultiEol)))
   end <- readLastLine
   return (concat str ++ end)
 

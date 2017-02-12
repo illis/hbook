@@ -54,6 +54,10 @@ spec = parallel $ do
       parse readMultiLineQP ""  input `shouldParse` ";;=33=38=20=51=75=65=62=65=63=20=53=74=0A=4B=69=6E=67=73=74=6F=6E=0A=57=65=6C=6C=69=6E=67=74=6F=6E=20=36=30=32=31;;;;"
       parse (readMultiLineQP *> readLastLine) "" input`shouldParse` "extra"
 
+    it "will only read a single continuous set (not jump lines)" $ do 
+      let input = ";;=33=\n=65;;;;\nextra\n;;=33=\n=65;;;;\nextra\n"
+      parse readMultiLineQP ""  input `shouldParse` ";;=33=65;;;;"
+
   describe "decodeQP" $
     it "decodes a QP encoded line" $
       decodeQP ";;=33=38=20=51=75=65=62=65=63=20=53=74=0A=4B=69=6E=67=73=74=6F=6E=0A=57=65=6C=6C=69=6E=67=74=6F=6E=20=36=30=32=31;;;;" `shouldBe` ";;38 Quebec St\nKingston\nWellington 6021;;;;"
@@ -119,4 +123,3 @@ spec = parallel $ do
     it "returns an empty array if no match is found" $ 
       findFields cardSu "NICKNAME" `shouldBe` []
 
-      
