@@ -41,6 +41,23 @@ spec = parallel $ do
     it "picks up a colon" $ 
       parse colon "" ":" `shouldParse` ":"
 
+  describe "qpMultiEol" $
+    it "picks up a quoted-printable multiline" $
+    parse qpMultiEol "" "=\n" `shouldParse` "=\n"
+
+  describe "readMultiLineQP" $ do
+    it "read & concats qp encoded lines" $
+      parse readMultiLineQP "" ";;=33=38=20=51=75=65=62=65=63=20=53=74=0A=4B=69=6E=67=73=74=6F=6E=0A=57=\n=65=6C=6C=69=6E=67=74=6F=6E=20=36=30=32=31;;;;\n" `shouldParse` ";;=33=38=20=51=75=65=62=65=63=20=53=74=0A=4B=69=6E=67=73=74=6F=6E=0A=57=65=6C=6C=69=6E=67=74=6F=6E=20=36=30=32=31;;;;"
+
+    it "wont ready any extra lines" $ do 
+      let input = ";;=33=38=20=51=75=65=62=65=63=20=53=74=0A=4B=69=6E=67=73=74=6F=6E=0A=57=\n=65=6C=6C=69=6E=67=74=6F=6E=20=36=30=32=31;;;;\nextra\n"
+      parse readMultiLineQP ""  input `shouldParse` ";;=33=38=20=51=75=65=62=65=63=20=53=74=0A=4B=69=6E=67=73=74=6F=6E=0A=57=65=6C=6C=69=6E=67=74=6F=6E=20=36=30=32=31;;;;"
+      parse (readMultiLineQP *> readLastLine) "" input`shouldParse` "extra"
+
+  describe "decodeQP" $
+    it "decodes a QP encoded line" $
+      decodeQP ";;=33=38=20=51=75=65=62=65=63=20=53=74=0A=4B=69=6E=67=73=74=6F=6E=0A=57=65=6C=6C=69=6E=67=74=6F=6E=20=36=30=32=31;;;;" `shouldBe` ";;38 Quebec St\nKingston\nWellington 6021;;;;"
+
   describe "readLine" $ do
     it "reads a basic line" $
       parse readLine "" "TEL:123\n" `shouldParse` ContentLine { name = "TEL", param = [], value = "123" }
@@ -50,6 +67,8 @@ spec = parallel $ do
       parse readLine "" "TEL;MOBILE;WORK:456\n" `shouldParse` ContentLine { name = "TEL", param = ["MOBILE", "WORK"], value = "456" }
     it "reads a quoted-printable encoded line" $
       parse readLine "" "N;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:this=20is=20a=20test;sfsadf;;;\n" `shouldParse` ContentLine { name = "N", param = [], value = "this is a test;sfsadf;;;" }
+    it "reads a multi-line quoted-printable encoded line" $
+      parse readLine "" "ADR;HOME;ENCODING=QUOTED-PRINTABLE:;;=33=38=20=51=75=65=62=65=63=20=53=74=0A=4B=69=6E=67=73=74=6F=6E=0A=57=\n=65=6C=6C=69=6E=67=74=6F=6E=20=36=30=32=31;;;;\n" `shouldParse` ContentLine { name = "ADR", param = ["HOME"], value = ";;38 Quebec St\nKingston\nWellington 6021;;;;" }
     
   describe "readBlock" $
     it "reads a basic block line" $

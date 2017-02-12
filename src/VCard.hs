@@ -16,18 +16,22 @@ module VCard (
   , readLine
   , readBlock
   , scoreCard
+  , qpMultiEol
+  , readLastLine
+  , readMultiLineQP
+  , decodeQP
 
 #endif 
 
 ) where
 
 import Control.Applicative (empty)
-import Control.Monad (void)
+import Control.Monad (join, void)
 import qualified Data.ByteString.Char8 as B (pack, unpack)
 import qualified Data.Text.Lazy as TL
 import Codec.Binary.QuotedPrintable (decode)
 import Data.Function ( on )
-import Data.List ( delete, reverse, sortBy )
+import Data.List ( delete, reverse, sortBy, (++) )
 import Data.Maybe ( catMaybes )
 import Data.Monoid ( (<>) )
 import Text.Fuzzy as F
@@ -72,29 +76,55 @@ semi = symbol ";"
 colon :: Parser String
 colon = symbol ":"
 
+qpMultiEol :: Parser String
+qpMultiEol = do
+  c <- string "="
+  e <- eol
+  return (c ++ e)
+
 beginvcard :: Parser String
 beginvcard = symbol "BEGIN:VCARD"
 
 endvcard :: Parser String
 endvcard = symbol "END:VCARD"
 
+encodingQP = "ENCODING=QUOTED-PRINTABLE"
+charsetUTF8 = "CHARSET=UTF-8"
+
+readLastLine :: Parser String
+readLastLine = manyTill anyChar eol
+
+readMultiLineQP :: Parser String
+readMultiLineQP = do
+  str <- many (try (manyTill anyChar (try qpMultiEol)))
+  end <- readLastLine
+  return (concat str ++ end)
+
+decodeQP :: TL.Text -> TL.Text
+decodeQP s = TL.pack $ decodeQP' $ TL.unpack s
+
+decodeQP' :: String -> String
+decodeQP' val = 
+  case decode $ B.pack val of
+    Left _ -> val
+    Right x ->  B.unpack x
+
+isQPEncoded :: [Param] -> Bool
+isQPEncoded = elem encodingQP
+   
 readLine :: Parser ContentLine
 readLine = do
   p <- manyTill anyChar colon
   let a = TL.splitOn ";" $ TL.pack p
   let params = tail a 
-  v <- manyTill anyChar eol
-  return ContentLine { name = head a, param = deletedExtraParams params, value = decodedValue v params }
+  if isQPEncoded params then do
+    qp <- readMultiLineQP
+    return ContentLine { name = head a, param = deletedExtraParams params, value = decodeQP $ TL.pack qp }
+  else do
+    s <- readLastLine
+    return ContentLine { name = head a, param = deletedExtraParams params, value = TL.pack s }
   where 
-    encodingQP = "ENCODING=QUOTED-PRINTABLE"
-    charsetUTF8 = "CHARSET=UTF-8"
     deletedExtraParams params = delete charsetUTF8 $ delete encodingQP params
-    decodedValue val params = 
-      if encodingQP `elem` params then
-        case decode $ B.pack val of
-          Left _ ->  TL.pack val
-          Right x -> TL.pack $ B.unpack x
-      else TL.pack val
 
 readBlock :: Parser [ContentLine]
 readBlock =
