@@ -28,6 +28,7 @@ data Opts = Opts
   { query :: String
   , minscore :: Int
   , filename :: FilePath
+  , debugOutput :: Bool
   }
 
 parserOpts :: Parser Opts
@@ -47,9 +48,13 @@ parserOpts = Opts
     <> long "file"
     <> short 'f'
     <> help "File containing vcards" )
+  <*> switch
+    ( long "debugOutput"
+   <> help "Debug output" )
 
 muttQueryParserOpts :: Opts -> IO ()
-muttQueryParserOpts (Opts query minscore fn) = muttQuery (TL.pack query) minscore fn
+muttQueryParserOpts (Opts query minscore fn False) = muttQuery (TL.pack query) minscore fn formatForMutt
+muttQueryParserOpts (Opts query minscore fn True) = muttQuery (TL.pack query) minscore fn formatForDebug
 
 someFunc :: IO ()
 someFunc = muttQueryParserOpts =<< execParser opts
@@ -83,11 +88,14 @@ formatForMutt c = foldr (\x -> TL.append (TL.pack $ printf "%s\t%s\t%s\n" (VCard
     emailFields = findFields c "EMAIL"
     paramStr x = formatParamsForMutt $ param x
 
-muttQuery :: TL.Text -> Int -> FilePath -> IO ()
-muttQuery query minScore fileName = 
+formatForDebug :: VCard -> TL.Text
+formatForDebug c = foldr (TL.append . VCard.value) "" (VCard.lines c)
+
+muttQuery :: TL.Text -> Int -> FilePath -> (VCard -> TL.Text) -> IO ()
+muttQuery query minScore fileName formatter = 
   withFile fileName ReadMode (\handle -> do
     vcf <- hGetContents handle
     case parse readVCard "" vcf of
       Left x -> putStrLn "Error"
-      Right x -> putStrLn $ TL.append "\n" $ TL.intercalate "" (formatForMutt <$> searchValues query minScore x))
+      Right x -> putStrLn $ TL.append "\n" $ TL.intercalate "\n" (formatter <$> searchValues query minScore x))
 
