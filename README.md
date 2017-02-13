@@ -6,6 +6,11 @@ hbook - an address book query tool for Mutt
 - Will take a search query & vcard file and return a mutt alias. 
 - Results are sorted by the fuzzy search filter.
 
+## Installation
+Use [stack](http://haskellstack.org):
+- `stack init`
+- `stack install`
+
 
 ## Usage
 ```
